@@ -49,6 +49,7 @@ export default {
   cursor: pointer;
   border: 1px solid transparent;
   transition: all 0.15s ease;
+  white-space: nowrap;
 }
 
 .ui-btn:disabled {
