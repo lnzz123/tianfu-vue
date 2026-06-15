@@ -228,8 +228,10 @@
                 <td>{{ item.areaInCasing }}</td>
                 <td>{{ item.sharedArea }}</td>
                 <td class="col-action detail-actions">
-                  <base-button variant="link" @click="startEditFromDetail(item)">编辑</base-button>
-                  <base-button variant="danger" @click="removeFromDetail(item.id)">删除</base-button>
+                  <div class="row-actions">
+                    <base-button variant="ghost" icon="edit" :icon-size="14" @click="startEditFromDetail(item)">编辑</base-button>
+                    <base-button variant="ghost-danger" icon="trash" :icon-size="14" @click="removeFromDetail(item.id)">删除</base-button>
+                  </div>
                 </td>
               </tr>
             </tbody>
@@ -661,14 +663,14 @@ export default {
   background: var(--surface-muted);
   border: 1px solid var(--border);
   border-radius: var(--radius);
-  padding: 16px 18px;
-  margin-bottom: 18px;
+  padding: 20px 22px;
+  margin-bottom: 24px;
 }
 
 .filters {
   display: flex;
   flex-wrap: wrap;
-  gap: 14px;
+  gap: 18px;
   align-items: flex-end;
 }
 
@@ -701,8 +703,12 @@ export default {
 }
 
 .detail-actions {
+  white-space: nowrap;
+}
+
+.row-actions {
   display: flex;
-  gap: 12px;
+  gap: 8px;
   justify-content: flex-end;
   align-items: center;
 }

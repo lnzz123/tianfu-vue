@@ -61,8 +61,10 @@
               <td class="mono">{{ u.idNumber }}</td>
               <td class="mono">{{ u.phone }}</td>
               <td class="col-action">
-                <base-button variant="link" @click="startEdit(u)">编辑</base-button>
-                <base-button variant="danger" @click="removeUser(u.phone)">删除</base-button>
+                <div class="row-actions">
+                  <base-button variant="ghost" icon="edit" :icon-size="14" @click="startEdit(u)">编辑</base-button>
+                  <base-button variant="ghost-danger" icon="trash" :icon-size="14" @click="removeUser(u.phone)">删除</base-button>
+                </div>
               </td>
             </tr>
           </tbody>
@@ -367,14 +369,14 @@ export default {
   background: var(--surface-muted);
   border: 1px solid var(--border);
   border-radius: var(--radius);
-  padding: 16px 18px;
-  margin-bottom: 18px;
+  padding: 20px 22px;
+  margin-bottom: 24px;
 }
 
 .filters {
   display: flex;
   flex-wrap: wrap;
-  gap: 14px;
+  gap: 18px;
   align-items: flex-end;
 }
 
@@ -407,8 +409,15 @@ export default {
 
 /* 表格单元格 */
 .col-action {
-  width: 110px;
+  width: 170px;
   text-align: right;
+}
+
+.row-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
 }
 
 .cell-name {
@@ -450,7 +459,7 @@ export default {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-top: 12px;
+  margin-top: 18px;
 }
 
 .pagination {

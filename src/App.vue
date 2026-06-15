@@ -127,7 +127,7 @@ body {
 }
 
 .ui-table th {
-  padding: 12px 16px;
+  padding: 14px 20px;
   font-size: 12px;
   font-weight: 600;
   letter-spacing: 0.03em;
@@ -138,7 +138,7 @@ body {
 }
 
 .ui-table td {
-  padding: 13px 16px;
+  padding: 16px 20px;
   font-size: 14px;
   color: var(--text);
   border-bottom: 1px solid var(--border);

@@ -247,7 +247,7 @@ export default {
 .admin-name { font-size: 13px; font-weight: 600; color: var(--text); }
 .logout { height: 36px; padding: 0 16px; display: inline-flex; align-items: center; gap: 7px; border-radius: var(--radius-sm); border: 1px solid var(--border-strong); background: var(--surface); color: var(--text-muted); font-size: 13px; font-weight: 500; cursor: pointer; transition: all 0.15s ease; }
 .logout:hover { border-color: var(--danger); color: var(--danger); background: var(--danger-soft); }
-.content { flex: 1; overflow-y: auto; padding: 24px 28px 32px; }
+.content { flex: 1; overflow-y: auto; padding: 28px 32px 40px; }
 .module-header { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px; margin-bottom: 20px; }
 .module-info { display: flex; align-items: center; gap: 14px; }
 .module-icon { width: 48px; height: 48px; border-radius: var(--radius); background: var(--brand-soft); color: var(--brand-strong); display: flex; align-items: center; justify-content: center; }
@@ -257,8 +257,8 @@ export default {
 .seg-item { display: inline-flex; align-items: center; gap: 7px; padding: 8px 16px; border: none; background: transparent; color: var(--text-muted); font-size: 14px; font-weight: 500; border-radius: var(--radius-sm); cursor: pointer; transition: all 0.15s ease; }
 .seg-item:hover { color: var(--text); }
 .seg-item.active { background: var(--brand); color: #fff; box-shadow: 0 4px 12px rgba(47, 107, 255, 0.3); }
-.content-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); box-shadow: var(--shadow); padding: 22px 24px 26px; }
-.app-context-bar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; padding: 12px 14px; background: var(--surface-muted); border: 1px solid var(--border); border-radius: var(--radius); }
+.content-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); box-shadow: var(--shadow); padding: 28px 30px 32px; }
+.app-context-bar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px; padding: 14px 16px; background: var(--surface-muted); border: 1px solid var(--border); border-radius: var(--radius); }
 .app-context-main { display: flex; align-items: center; gap: 12px; }
 .app-context-icon { width: 36px; height: 36px; border-radius: 10px; background: var(--brand-soft); color: var(--brand-strong); display: flex; align-items: center; justify-content: center; }
 .app-context-title { font-weight: 700; color: var(--text); }
