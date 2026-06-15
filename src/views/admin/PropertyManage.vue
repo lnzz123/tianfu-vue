@@ -1,155 +1,203 @@
 <template>
   <div class="panel">
-    <div class="panel-header">
-      <div class="filter-row">
+    <!-- 查询工具栏 -->
+    <div class="toolbar">
+      <div class="filters">
         <div class="field">
           <label>产权人姓名</label>
-          <input v-model="filters.ownerName" placeholder="例：张三" />
+          <input class="ui-input field-input" v-model="filters.ownerName" placeholder="例：张三" @keyup.enter="loadProperties" />
         </div>
         <div class="field">
           <label>证件号码</label>
-          <input v-model="filters.idNumber" placeholder="证件号码" />
+          <input class="ui-input field-input" v-model="filters.idNumber" placeholder="证件号码" @keyup.enter="loadProperties" />
         </div>
         <div class="field">
           <label>城市</label>
-          <input v-model="filters.city" placeholder="例：成都市" />
+          <input class="ui-input field-input" v-model="filters.city" placeholder="例：成都市" @keyup.enter="loadProperties" />
         </div>
-        <button class="primary" @click="loadProperties">查询</button>
-        <button class="secondary" @click="openCreate">新增房产</button>
+        <div class="toolbar-actions">
+          <base-button variant="primary" icon="search" @click="loadProperties">查询</base-button>
+          <base-button variant="secondary" icon="plus" @click="openCreate">新增房产</base-button>
+        </div>
       </div>
     </div>
 
+    <!-- 数据表格 -->
     <div class="panel-body">
-      <table class="data-table">
-        <thead>
-          <tr>
-            <th>产权人</th>
-            <th>证件号</th>
-            <th>手机号</th>
-            <th>操作</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr v-if="loading">
-            <td colspan="4" class="center">加载中...</td>
-          </tr>
-          <tr v-else-if="ownerGroups.length === 0">
-            <td colspan="4" class="center">暂无数据</td>
-          </tr>
-          <tr
-            v-for="group in ownerGroups"
-            :key="group.idNumber + '-' + group.ownerName + '-' + (group.phone || '')"
-          >
-            <td>{{ group.ownerName }}</td>
-            <td>{{ group.idNumber }}</td>
-            <td>{{ group.phone || '-' }}</td>
-            <td>
-              <button class="link" @click="openDetail(group)">查看房产信息</button>
-            </td>
-          </tr>
-        </tbody>
-      </table>
+      <div class="ui-table-wrap">
+        <table class="ui-table">
+          <thead>
+            <tr>
+              <th>产权人</th>
+              <th>证件号</th>
+              <th>手机号</th>
+              <th class="col-action">操作</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-if="loading">
+              <td colspan="4" class="center muted">加载中...</td>
+            </tr>
+            <tr v-else-if="ownerGroups.length === 0">
+              <td colspan="4">
+                <empty-state icon="building" text="暂无房产数据" />
+              </td>
+            </tr>
+            <tr
+              v-for="group in ownerGroups"
+              :key="group.idNumber + '-' + group.ownerName + '-' + (group.phone || '')"
+            >
+              <td>
+                <div class="cell-name">
+                  <span class="cell-avatar">{{ (group.ownerName || '?').charAt(0) }}</span>
+                  <span>{{ group.ownerName }}</span>
+                  <span class="count-badge">{{ group.properties.length }} 套</span>
+                </div>
+              </td>
+              <td class="mono">{{ group.idNumber }}</td>
+              <td class="mono">{{ group.phone || '-' }}</td>
+              <td class="col-action">
+                <base-button variant="link" @click="openDetail(group)">查看房产信息</base-button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="table-footer">
+        <div class="left-actions"></div>
+        <div class="pagination" v-if="page.total > 0">
+          <span>共 {{ page.total }} 条</span>
+          <div class="pager">
+            <button :disabled="page.pageNo === 1" @click="changePage(page.pageNo - 1)">上一页</button>
+            <span>{{ page.pageNo }} / {{ totalPages }}</span>
+            <button :disabled="page.pageNo >= totalPages" @click="changePage(page.pageNo + 1)">下一页</button>
+            <select v-model.number="page.pageSize" @change="changePage(1)">
+              <option :value="10">10</option>
+              <option :value="20">20</option>
+              <option :value="50">50</option>
+            </select>
+          </div>
+        </div>
+      </div>
       <div v-if="error" class="error">{{ error }}</div>
     </div>
 
     <!-- 新增/编辑房产信息对话框 -->
-    <div v-if="showDialog" class="dialog-mask">
-      <div class="dialog">
-        <h3>{{ editing.id ? '编辑房产信息' : '新增房产信息' }}</h3>
-        <div class="dialog-body">
-          <div v-if="!editing.id" class="field-row owner-select-row">
-            <label>产权人姓名</label>
-            <div class="owner-select-wrapper">
-              <input
-                v-model="ownerNameInput"
-                @input="debouncedSearchUsers"
-                @focus="showUserDropdown = true; debouncedSearchUsers()"
-                placeholder="请输入姓名或证件号搜索"
-              />
-              <button class="dropdown-toggle" type="button" @click="toggleUserDropdown">
-                ▼
-              </button>
-              <ul v-if="showUserDropdown && filteredUsers.length" class="user-dropdown">
-                <li
-                  v-for="u in filteredUsers"
-                  :key="u.id + '-' + u.idNumber"
-                  @click="selectUser(u)"
-                >
-                  {{ u.realName }}（ID: {{ u.id }}，证件号: {{ u.idNumber }}）
-                </li>
-              </ul>
-            </div>
-          </div>
-          <div v-if="!editing.id" class="field-row">
-            <label>证件号码</label>
-            <input v-model="editing.idNumber" @blur="handleIdNumberBlur" />
-          </div>
-          <div class="field-row field-row-2col">
-            <div class="field-half">
-              <label>城市</label>
-              <input v-model="editing.city" />
-            </div>
-            <div class="field-half">
-              <label>行政区</label>
-              <input v-model="editing.district" />
-            </div>
-          </div>
-          <div class="field-row field-row-2col">
-            <div class="field-half">
-              <label>街道</label>
-              <input v-model="editing.street" />
-            </div>
-            <div class="field-half">
-              <label>门牌号</label>
-              <input v-model="editing.doorNo" />
-            </div>
-          </div>
-          <div class="field-row field-row-2col">
-            <div class="field-half">
-              <label>栋号</label>
-              <input v-model.number="editing.buildingNo" type="number" />
-            </div>
-            <div class="field-half">
-              <label>单元</label>
-              <input v-model.number="editing.unitNo" type="number" />
-            </div>
-          </div>
-          <div class="field-row field-row-2col">
-            <div class="field-half">
-              <label>楼层</label>
-              <input v-model="editing.floor" />
-            </div>
-            <div class="field-half">
-              <label>房号</label>
-              <input v-model.number="editing.roomNo" type="number" />
-            </div>
-          </div>
-          <div class="field-row field-row-2col">
-            <div class="field-half">
-              <label>套内面积 (㎡)</label>
-              <input v-model.number="editing.areaInCasing" type="number" step="0.01" />
-            </div>
-            <div class="field-half">
-              <label>公摊面积 (㎡)</label>
-              <input v-model.number="editing.sharedArea" type="number" step="0.01" />
-            </div>
+    <base-modal
+      v-if="showDialog"
+      :title="editing.id ? '编辑房产信息' : '新增房产信息'"
+      width="560px"
+      @close="closeDialog"
+    >
+      <div class="dialog-body">
+        <div v-if="!editing.id" class="field-row owner-select-row">
+          <label>产权人姓名</label>
+          <div class="owner-select-wrapper">
+            <input
+              class="ui-input"
+              v-model="ownerNameInput"
+              @input="onOwnerNameInput"
+              @focus="onOwnerNameFocus"
+              @blur="onOwnerNameBlur"
+              placeholder="请输入姓名搜索"
+            />
+            <button class="dropdown-toggle" type="button" @click="toggleUserDropdown" aria-label="展开用户列表">
+              <app-icon name="chevron-down" :size="16" />
+            </button>
+            <ul v-if="showUserDropdown" class="user-dropdown">
+              <li v-if="userSearchLoading" class="dropdown-hint">搜索中...</li>
+              <li v-else-if="filteredUsers.length === 0" class="dropdown-hint">暂无匹配用户</li>
+              <li
+                v-for="u in filteredUsers"
+                :key="u.id + '-' + u.idNumber"
+                @mousedown.prevent="selectUser(u)"
+              >
+                {{ u.realName }}（证件号: {{ u.idNumber }}）
+              </li>
+            </ul>
           </div>
         </div>
-        <div class="dialog-footer">
-          <button class="secondary" @click="closeDialog">取消</button>
-          <button class="primary" @click="saveProperty">保存</button>
+        <div v-if="!editing.id" class="field-row">
+          <label>证件号码</label>
+          <input class="ui-input" v-model="editing.idNumber" @blur="handleIdNumberBlur" />
+        </div>
+        <div class="field-row field-row-2col">
+          <div class="field-half">
+            <label>城市</label>
+            <input class="ui-input" v-model="editing.city" />
+          </div>
+          <div class="field-half">
+            <label>行政区</label>
+            <input class="ui-input" v-model="editing.district" />
+          </div>
+        </div>
+        <div class="field-row field-row-2col">
+          <div class="field-half">
+            <label>街道</label>
+            <input class="ui-input" v-model="editing.street" />
+          </div>
+          <div class="field-half">
+            <label>门牌号</label>
+            <input class="ui-input" v-model="editing.doorNo" />
+          </div>
+        </div>
+        <div class="field-row field-row-2col">
+          <div class="field-half">
+            <label>栋号</label>
+            <input class="ui-input" v-model.number="editing.buildingNo" type="number" />
+          </div>
+          <div class="field-half">
+            <label>单元</label>
+            <input class="ui-input" v-model.number="editing.unitNo" type="number" />
+          </div>
+        </div>
+        <div class="field-row field-row-2col">
+          <div class="field-half">
+            <label>楼层</label>
+            <input class="ui-input" v-model="editing.floor" />
+          </div>
+          <div class="field-half">
+            <label>房号</label>
+            <input class="ui-input" v-model.number="editing.roomNo" type="number" />
+          </div>
+        </div>
+        <div class="field-row field-row-2col">
+          <div class="field-half">
+            <label>套内面积 (㎡)</label>
+            <input class="ui-input" v-model.number="editing.areaInCasing" type="number" step="0.01" />
+          </div>
+          <div class="field-half">
+            <label>公摊面积 (㎡)</label>
+            <input class="ui-input" v-model.number="editing.sharedArea" type="number" step="0.01" />
+          </div>
         </div>
       </div>
-    </div>
+      <template #footer>
+        <base-button variant="secondary" @click="closeDialog">取消</base-button>
+        <base-button variant="primary" @click="saveProperty">保存</base-button>
+      </template>
+    </base-modal>
 
     <!-- 房产信息详情对话框 -->
-    <div v-if="showDetailDialog" class="dialog-mask">
-      <div class="dialog dialog-detail">
-        <h3>房产信息详情</h3>
-        <div class="dialog-body">
-          <table class="data-table" style="margin-top: 0;">
+    <base-modal
+      v-if="showDetailDialog"
+      title="房产信息详情"
+      width="920px"
+      @close="closeDetailDialog"
+    >
+      <div class="detail-owner" v-if="detailItem.ownerName">
+        <span class="cell-avatar">{{ (detailItem.ownerName || '?').charAt(0) }}</span>
+        <div>
+          <div class="detail-owner-name">{{ detailItem.ownerName }}</div>
+          <div class="detail-owner-sub">证件号：{{ detailItem.idNumber }}<template v-if="detailItem.phone"> · 手机号：{{ detailItem.phone }}</template></div>
+        </div>
+      </div>
+      <div class="dialog-body">
+        <div class="ui-table-wrap">
+          <table class="ui-table">
             <thead>
               <tr>
+                <th>选择</th>
                 <th>城市</th>
                 <th>行政区</th>
                 <th>街道</th>
@@ -160,7 +208,7 @@
                 <th>房号</th>
                 <th>套内面积 (㎡)</th>
                 <th>公摊面积 (㎡)</th>
-                <th>操作</th>
+                <th class="col-action">操作</th>
               </tr>
             </thead>
             <tbody>
@@ -168,6 +216,7 @@
                 v-for="item in detailProperties"
                 :key="item.id"
               >
+                <td><input type="checkbox" :value="item.id" v-model="selectedDetailIds" /></td>
                 <td>{{ item.city }}</td>
                 <td>{{ item.district }}</td>
                 <td>{{ item.street }}</td>
@@ -178,23 +227,32 @@
                 <td>{{ item.roomNo }}</td>
                 <td>{{ item.areaInCasing }}</td>
                 <td>{{ item.sharedArea }}</td>
-                <td>
-                  <button class="link" @click="startEditFromDetail(item)">编辑</button>
-                  <button class="danger" @click="removeFromDetail(item.id)">删除</button>
+                <td class="col-action detail-actions">
+                  <base-button variant="link" @click="startEditFromDetail(item)">编辑</base-button>
+                  <base-button variant="danger" @click="removeFromDetail(item.id)">删除</base-button>
                 </td>
               </tr>
             </tbody>
           </table>
         </div>
-        <div class="dialog-footer">
-          <button class="secondary" @click="closeDetailDialog">关闭</button>
-        </div>
       </div>
-    </div>
+      <template #footer>
+        <div class="detail-footer">
+          <base-button variant="danger" :disabled="selectedDetailIds.length === 0" @click="removeBatchDetail">批量删除</base-button>
+          <div class="spacer"></div>
+          <base-button variant="secondary" @click="closeDetailDialog">关闭</base-button>
+        </div>
+      </template>
+    </base-modal>
   </div>
 </template>
 
 <script>
+import AppIcon from '../../components/AppIcon.vue'
+import BaseButton from '../../components/BaseButton.vue'
+import BaseModal from '../../components/BaseModal.vue'
+import EmptyState from '../../components/EmptyState.vue'
+
 function cloneEmptyProperty () {
   return {
     id: null,
@@ -215,6 +273,18 @@ function cloneEmptyProperty () {
 
 export default {
   name: 'PropertyManage',
+  components: {
+    AppIcon,
+    BaseButton,
+    BaseModal,
+    EmptyState
+  },
+  props: {
+    appId: {
+      type: Number,
+      default: 1
+    }
+  },
   data () {
     return {
       filters: {
@@ -223,12 +293,18 @@ export default {
         city: '成都市'
       },
       properties: [],
+      page: {
+        pageNo: 1,
+        pageSize: 10,
+        total: 0
+      },
       loading: false,
       error: '',
       showDialog: false,
       showDetailDialog: false,
       detailItem: {},
       detailProperties: [],
+      selectedDetailIds: [],
       editingFromDetail: false,
       editing: cloneEmptyProperty(),
       ownerNameInput: '',
@@ -240,6 +316,9 @@ export default {
     }
   },
   computed: {
+    totalPages () {
+      return this.page.pageSize > 0 ? Math.ceil(this.page.total / this.page.pageSize) || 1 : 1
+    },
     filteredUsers () {
       return this.userCandidates
     },
@@ -270,6 +349,22 @@ export default {
   created () {
     this.loadProperties()
   },
+  watch: {
+    appId () {
+      this.page.pageNo = 1
+      this.filters = {
+        ownerName: '',
+        idNumber: '',
+        city: '成都市'
+      }
+      this.selectedDetailIds = []
+      this.showDialog = false
+      this.showDetailDialog = false
+      this.editingFromDetail = false
+      this.loadProperties()
+    }
+  },
+
   methods: {
     openDetail (group) {
       this.detailItem = {
@@ -282,6 +377,7 @@ export default {
       } else {
         this.detailProperties = []
       }
+      this.selectedDetailIds = []
       this.showDetailDialog = true
     },
     closeDetailDialog () {
@@ -302,9 +398,39 @@ export default {
       // 删除成功时 this.error 为空
       if (!this.error) {
         this.detailProperties = this.detailProperties.filter(p => p.id !== id)
+        this.selectedDetailIds = this.selectedDetailIds.filter(pid => pid !== id)
         if (!this.detailProperties.length) {
           this.showDetailDialog = false
         }
+      }
+    },
+    async removeBatchDetail () {
+      if (!this.selectedDetailIds.length) return
+      if (!window.confirm('确定删除选中的房产吗？')) return
+      const token = localStorage.getItem('adminToken') || ''
+      this.error = ''
+      try {
+        const resp = await fetch(`/api/apps/${this.appId}/admin/properties`, {
+          method: 'DELETE',
+          headers: {
+            'Content-Type': 'application/json',
+            'user-authentication': token
+          },
+          body: JSON.stringify(this.selectedDetailIds)
+        })
+        const data = await resp.json()
+        if (data.code === 1) {
+          this.detailProperties = this.detailProperties.filter(p => !this.selectedDetailIds.includes(p.id))
+          this.selectedDetailIds = []
+          if (!this.detailProperties.length) {
+            this.showDetailDialog = false
+          }
+          this.loadProperties()
+        } else {
+          this.error = data.msg || '删除失败'
+        }
+      } catch (e) {
+        this.error = '网络错误：' + (e.message || '未知错误')
       }
     },
     async loadProperties () {
@@ -315,24 +441,33 @@ export default {
         if (this.filters.ownerName) params.append('ownerName', this.filters.ownerName)
         if (this.filters.idNumber) params.append('idNumber', this.filters.idNumber)
         if (this.filters.city) params.append('city', this.filters.city)
+        params.append('pageNo', this.page.pageNo)
+        params.append('pageSize', this.page.pageSize)
         const token = localStorage.getItem('adminToken') || ''
         // 当前管理端入口在天府通办菜单下，对应 appId = 1
-        const resp = await fetch('/api/apps/1/admin/properties?' + params.toString(), {
+        const resp = await fetch(`/api/apps/${this.appId}/admin/properties?` + params.toString(), {
           headers: {
             'user-authentication': token
           }
         })
         const data = await resp.json()
         if (data.code === 1) {
-          this.properties = data.data || []
+          this.properties = (data.data && data.data.records) || []
+          this.page.total = data.data ? data.data.total : 0
+          this.page.pageNo = data.data ? data.data.pageNo : this.page.pageNo
+          this.page.pageSize = data.data ? data.data.pageSize : this.page.pageSize
         } else {
           this.error = data.msg || '查询失败'
         }
       } catch (e) {
-        this.error = '网络错误：' + (e.message || '未知错误')
+        this.error = '网络错误：' + (e.message || '未知��误')
       } finally {
         this.loading = false
       }
+    },
+    changePage (pageNo) {
+      this.page.pageNo = pageNo
+      this.loadProperties()
     },
     openCreate () {
       this.editing = cloneEmptyProperty()
@@ -359,9 +494,29 @@ export default {
     },
     toggleUserDropdown () {
       this.showUserDropdown = !this.showUserDropdown
-      if (this.showUserDropdown) {
+      if (this.showUserDropdown && this.ownerNameInput.trim()) {
         this.searchUsers()
       }
+    },
+    onOwnerNameInput () {
+      // 每次输入都 debounce 搜索，并保持下拉展开
+      this.showUserDropdown = true
+      this.debouncedSearchUsers()
+    },
+    onOwnerNameFocus () {
+      // 聚焦时若已有输入则触发搜索并展开，否则仅展开（等待输入）
+      if (this.ownerNameInput.trim()) {
+        this.showUserDropdown = true
+        this.debouncedSearchUsers()
+      } else {
+        this.showUserDropdown = false
+      }
+    },
+    onOwnerNameBlur () {
+      // 延迟收起，让 mousedown 的 selectUser 能先执行
+      setTimeout(() => {
+        this.showUserDropdown = false
+      }, 180)
     },
     debouncedSearchUsers () {
       if (this.userSearchTimer) {
@@ -376,6 +531,7 @@ export default {
       const idNumber = (this.editing.idNumber || '').trim()
       if (!keyword && !idNumber) {
         this.userCandidates = []
+        this.showUserDropdown = false
         return
       }
       this.userSearchLoading = true
@@ -389,15 +545,14 @@ export default {
           params.append('idNumber', idNumber)
         }
         const token = localStorage.getItem('adminToken') || ''
-        // 当前管理端入口在天府通办菜单下，对应 appId = 1
-        const resp = await fetch('/api/apps/1/admin/users?' + params.toString(), {
+        const resp = await fetch(`/api/apps/${this.appId}/admin/users?` + params.toString(), {
           headers: {
             'user-authentication': token
           }
         })
         const data = await resp.json()
         if (data.code === 1) {
-          const list = data.data || []
+          const list = data.data && data.data.records ? data.data.records : []
           this.userCandidates = Array.isArray(list) ? list : []
         } else {
           this.userSearchError = data.msg || '用户查询失败'
@@ -428,12 +583,15 @@ export default {
         this.ownerNameInput = user.realName
       }
       this.showUserDropdown = !!(this.userCandidates && this.userCandidates.length)
+      if (!this.showUserDropdown) {
+        this.userCandidates = []
+      }
     },
     async saveProperty () {
       const token = localStorage.getItem('adminToken') || ''
       const payload = Object.assign({}, this.editing)
       // 当前管理端入口在天府通办菜单下，对应 appId = 1
-      const url = this.editing.id ? '/api/apps/1/admin/properties/' + this.editing.id : '/api/apps/1/admin/properties'
+      const url = this.editing.id ? `/api/apps/${this.appId}/admin/properties/` + this.editing.id : `/api/apps/${this.appId}/admin/properties`
       const method = this.editing.id ? 'PUT' : 'POST'
       this.error = ''
       try {
@@ -455,6 +613,7 @@ export default {
               const updated = Object.assign({}, this.editing)
               this.detailProperties.splice(idx, 1, updated)
             }
+            this.selectedDetailIds = this.selectedDetailIds.filter(id => id !== this.editing.id)
             this.showDetailDialog = true
             this.editingFromDetail = false
           }
@@ -471,7 +630,7 @@ export default {
       this.error = ''
       try {
         // 当前管理端入口在天府通办菜单下，对应 appId = 1
-        const resp = await fetch('/api/apps/1/admin/properties/' + id, {
+        const resp = await fetch(`/api/apps/${this.appId}/admin/properties/` + id, {
           method: 'DELETE',
           headers: {
             'user-authentication': token
@@ -497,15 +656,26 @@ export default {
   flex-direction: column;
 }
 
-.panel-header {
-  padding-bottom: 12px;
+/* 工具栏 */
+.toolbar {
+  background: var(--surface-muted);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px 18px;
+  margin-bottom: 18px;
 }
 
-.filter-row {
+.filters {
   display: flex;
   flex-wrap: wrap;
-  gap: 12px;
+  gap: 14px;
   align-items: flex-end;
+}
+
+.toolbar-actions {
+  display: flex;
+  gap: 10px;
+  margin-left: auto;
 }
 
 .field {
@@ -514,160 +684,176 @@ export default {
 }
 
 .field label {
-  font-size: 13px;
-  color: #666;
-  margin-bottom: 4px;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-muted);
+  margin-bottom: 6px;
 }
 
-.field input {
-  width: 170px;
+.field-input {
+  width: 180px;
+}
+
+/* 表格单元格 */
+.col-action {
+  text-align: right;
+  white-space: nowrap;
+}
+
+.detail-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+  align-items: center;
+}
+
+.table-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 12px;
+}
+
+.pagination {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.pager {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.cell-name {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 500;
+}
+
+.cell-avatar {
+  width: 30px;
   height: 30px;
-  border-radius: 6px;
-  border: 1px solid #ddd;
-  padding: 0 8px;
-  box-sizing: border-box;
+  border-radius: 50%;
+  background: var(--brand-soft);
+  color: var(--brand-strong);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  font-weight: 600;
+  flex-shrink: 0;
 }
 
-button.primary {
-  height: 32px;
-  padding: 0 18px;
-  border-radius: 6px;
-  border: none;
-  background-color: #7b5cff;
-  color: #fff;
-  cursor: pointer;
-}
-
-button.secondary {
-  height: 32px;
-  padding: 0 18px;
-  border-radius: 6px;
-  border: 1px solid #7b5cff;
-  background-color: #fff;
-  color: #7b5cff;
-  cursor: pointer;
-}
-
-button.danger {
-  height: 26px;
-  padding: 0 10px;
-  border-radius: 4px;
-  border: none;
-  background-color: #ff7875;
-  color: #fff;
-  cursor: pointer;
+.count-badge {
+  display: inline-block;
+  padding: 2px 8px;
   font-size: 12px;
+  border-radius: 999px;
+  background: var(--brand-soft);
+  color: var(--brand-strong);
+  font-weight: 500;
 }
 
-button.link {
-  background: none;
-  border: none;
-  color: #7b5cff;
-  cursor: pointer;
-  margin-right: 6px;
-}
-
-.data-table {
-  width: 100%;
-  border-collapse: collapse;
-  margin-top: 8px;
-}
-
-.data-table th,
-.data-table td {
-  border-bottom: 1px solid #f0f0f0;
-  padding: 6px 8px;
-  font-size: 12px;
-  text-align: left;
-}
-
-.data-table thead {
-  background-color: #fafafa;
+.mono {
+  font-variant-numeric: tabular-nums;
+  color: var(--text-muted);
 }
 
 .center {
   text-align: center;
 }
 
-.error {
-  margin-top: 10px;
-  color: #ff4d4f;
-  font-size: 13px;
+.muted {
+  color: var(--text-muted);
+  padding: 28px 0;
 }
 
-.dialog-mask {
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.35);
+.error {
+  margin-top: 14px;
+  color: var(--danger);
+  font-size: 13px;
+  padding: 10px 12px;
+  background: var(--danger-soft);
+  border: 1px solid #fecaca;
+  border-radius: var(--radius-sm);
+}
+
+/* 详情产权人卡片 */
+.detail-owner {
   display: flex;
   align-items: center;
-  justify-content: center;
+  gap: 12px;
+  padding: 14px 16px;
+  background: var(--surface-muted);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  margin-bottom: 16px;
 }
 
-.dialog {
-  width: 520px;
-  background: #ffffff;
-  border-radius: 10px;
-  padding: 18px 20px 16px;
+.detail-owner-name {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text);
 }
 
-.dialog-detail {
-  width: 880px;
+.detail-owner-sub {
+  font-size: 13px;
+  color: var(--text-muted);
+  margin-top: 2px;
 }
 
-.dialog h3 {
-  margin: 0 0 12px;
-  font-size: 16px;
-}
-
+/* 对话框内表单 */
 .dialog-body {
-  max-height: 360px;
+  max-height: 60vh;
   overflow-y: auto;
-  overflow-x: hidden;
+  overflow-x: auto;
 }
 
 .field-row {
   display: flex;
   align-items: center;
-  margin-bottom: 10px;
+  margin-bottom: 14px;
 }
 
-.field-row label {
-  width: 90px;
+.field-row > label {
+  width: 96px;
+  flex-shrink: 0;
   font-size: 13px;
-  color: #555;
+  font-weight: 500;
+  color: var(--text-muted);
 }
 
-.field-row input {
+.field-row > .ui-input {
   flex: 1;
-  height: 30px;
-  border-radius: 6px;
-  border: 1px solid #ddd;
-  padding: 0 8px;
-  box-sizing: border-box;
 }
-
 
 .field-row-2col {
-  align-items: center;
-  column-gap: 16px;
+  /* 覆盖父级的 align-items:center，让两个 field-half 并排 */
+  align-items: flex-start;
+  gap: 14px;
 }
 
 .field-row-2col .field-half {
-  flex: 0 0 calc(50% - 10px);
-  max-width: calc(50% - 10px);
+  flex: 1 1 0;
+  min-width: 0;
   display: flex;
-  align-items: center;
+  flex-direction: column;
+  gap: 6px;
 }
 
 .field-row-2col .field-half label {
-  width: 90px;
-  margin-right: 6px;
-  margin-bottom: 0;
+  width: auto;
+  flex-shrink: 0;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-muted);
 }
 
-.field-row-2col .field-half input {
-  flex: 1;
+.field-row-2col .field-half .ui-input {
+  width: 100%;
 }
 
 .owner-select-row .owner-select-wrapper {
@@ -677,50 +863,80 @@ button.link {
   position: relative;
 }
 
-.owner-select-row .owner-select-wrapper input {
+.owner-select-row .owner-select-wrapper .ui-input {
   flex: 1;
 }
 
 .dropdown-toggle {
-  margin-left: 6px;
-  width: 28px;
-  height: 30px;
-  border-radius: 6px;
-  border: 1px solid #ddd;
-  background-color: #fafafa;
+  margin-left: 8px;
+  width: 38px;
+  height: 38px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-strong);
+  background: var(--surface-muted);
   cursor: pointer;
-  font-size: 12px;
+  color: var(--text-muted);
+  flex-shrink: 0;
+  transition: all 0.15s ease;
+}
+
+.dropdown-toggle:hover {
+  border-color: var(--brand);
+  color: var(--brand);
 }
 
 .user-dropdown {
   position: absolute;
   top: 100%;
   left: 0;
-  right: 0;
-  margin: 4px 0 0;
-  padding: 4px 0;
-  background-color: #ffffff;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.08);
-  max-height: 180px;
+  right: 46px;
+  margin: 6px 0 0;
+  padding: 6px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow);
+  max-height: 200px;
   overflow-y: auto;
   list-style: none;
-  font-size: 12px;
+  font-size: 13px;
   z-index: 10;
 }
 
 .user-dropdown li {
-  padding: 4px 10px;
+  padding: 8px 10px;
   cursor: pointer;
+  border-radius: var(--radius-sm);
+  color: var(--text);
 }
 
 .user-dropdown li:hover {
-  background-color: #f5f5f5;
+  background: var(--brand-soft);
+  color: var(--brand-strong);
 }
 
-.dialog-footer {
-  margin-top: 14px;
-  text-align: right;
+.user-dropdown .dropdown-hint {
+  color: var(--text-faint);
+  font-size: 12px;
+  cursor: default;
+  pointer-events: none;
+}
+
+.user-dropdown .dropdown-hint:hover {
+  background: none;
+}
+
+.detail-footer {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  gap: 12px;
+}
+
+.detail-footer .spacer {
+  flex: 1;
 }
 </style>

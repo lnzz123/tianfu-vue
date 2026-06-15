@@ -1,26 +1,67 @@
 <template>
   <div class="login-page">
-    <div class="login-card">
-      <h1 class="title">房产后台管理系统</h1>
-      <div class="form-item">
-        <label>用户名</label>
-        <input v-model="form.account" placeholder="请输入管理员用户名" />
+    <!-- 左侧品牌面板 -->
+    <aside class="brand-panel">
+      <div class="brand-top">
+        <div class="brand-mark">
+          <app-icon name="layers" :size="24" :stroke-width="2.1" />
+        </div>
+        <span class="brand-name">天府通办</span>
       </div>
-      <div class="form-item">
-        <label>密码</label>
-        <input v-model="form.password" type="password" placeholder="请输入密码" />
+      <div class="brand-hero">
+        <h2 class="brand-title">后台管理系统</h2>
+        <p class="brand-desc">统一管理多应用的用户信息与房产数据，安全、高效、清晰。</p>
+        <ul class="brand-points">
+          <li><span class="point-icon"><app-icon name="users" :size="16" /></span>用户信息集中管理</li>
+          <li><span class="point-icon"><app-icon name="building" :size="16" /></span>房产数据精细维护</li>
+          <li><span class="point-icon"><app-icon name="layers" :size="16" /></span>多应用可扩展架构</li>
+        </ul>
       </div>
-      <div class="error" v-if="error">{{ error }}</div>
-      <button class="login-button" :disabled="loading" @click="handleLogin">
-        {{ loading ? '登录中...' : '登录' }}
-      </button>
-    </div>
+      <div class="brand-foot">© {{ year }} 天府通办 · 政务服务平台</div>
+    </aside>
+
+    <!-- 右侧登录表单 -->
+    <main class="form-panel">
+      <div class="login-card">
+        <div class="card-head">
+          <h1 class="title">欢迎登录</h1>
+          <p class="subtitle">请输入管理员账号以继续</p>
+        </div>
+
+        <div class="form-item">
+          <label>用户名</label>
+          <div class="input-wrap">
+            <input v-model="form.account" placeholder="请输入管理员用户名" @keyup.enter="handleLogin" />
+          </div>
+        </div>
+
+        <div class="form-item">
+          <label>密码</label>
+          <div class="input-wrap">
+            <input v-model="form.password" type="password" placeholder="请输入密码" @keyup.enter="handleLogin" />
+          </div>
+        </div>
+
+        <div class="error" v-if="error">{{ error }}</div>
+
+        <button class="login-button" :disabled="loading" @click="handleLogin">
+          {{ loading ? '登录中...' : '登 录' }}
+        </button>
+
+        <p class="hint">如忘记账号或密码，请联系系统管理员。</p>
+      </div>
+    </main>
   </div>
 </template>
 
 <script>
+import AppIcon from '../../components/AppIcon.vue'
+
 export default {
   name: 'LoginView',
+  components: {
+    AppIcon
+  },
   data () {
     return {
       form: {
@@ -28,7 +69,8 @@ export default {
         password: ''
       },
       loading: false,
-      error: ''
+      error: '',
+      year: new Date().getFullYear()
     }
   },
   methods: {
@@ -74,72 +116,234 @@ export default {
 .login-page {
   height: 100vh;
   display: flex;
+  background: var(--bg);
+}
+
+/* ===== 左侧品牌面板 ===== */
+.brand-panel {
+  position: relative;
+  width: 44%;
+  max-width: 560px;
+  padding: 48px 56px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  color: #fff;
+  background:
+    radial-gradient(1200px 500px at -10% -10%, rgba(47, 107, 255, 0.55), transparent 60%),
+    linear-gradient(160deg, #16263d 0%, #0f1b2d 60%, #0b1626 100%);
+  overflow: hidden;
+}
+
+.brand-panel::after {
+  content: '';
+  position: absolute;
+  right: -120px;
+  bottom: -120px;
+  width: 360px;
+  height: 360px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(47, 107, 255, 0.35), transparent 70%);
+}
+
+.brand-top {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  position: relative;
+  z-index: 1;
+}
+
+.brand-mark {
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  background: var(--brand);
+  display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(90deg, #a66bff, #f480ff);
+  color: #fff;
+  box-shadow: 0 6px 18px rgba(47, 107, 255, 0.45);
+}
+
+.brand-name {
+  font-size: 18px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+}
+
+.brand-hero {
+  position: relative;
+  z-index: 1;
+}
+
+.brand-title {
+  font-size: 38px;
+  line-height: 1.2;
+  margin: 0 0 16px;
+  font-weight: 800;
+}
+
+.brand-desc {
+  font-size: 15px;
+  line-height: 1.7;
+  color: #c4d0e0;
+  max-width: 360px;
+  margin: 0 0 28px;
+}
+
+.brand-points {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.brand-points li {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 14px;
+  color: #d7e0ee;
+}
+
+.brand-points .point-icon {
+  width: 30px;
+  height: 30px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+  color: #cfe0ff;
+  background: rgba(47, 107, 255, 0.18);
+}
+
+.brand-foot {
+  position: relative;
+  z-index: 1;
+  font-size: 13px;
+  color: #8a9ab0;
+}
+
+/* ===== 右侧表单 ===== */
+.form-panel {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 32px;
 }
 
 .login-card {
-  width: 380px;
-  background: #ffffff;
-  border-radius: 12px;
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
-  padding: 32px 28px 28px;
+  width: 100%;
+  max-width: 380px;
+}
+
+.card-head {
+  margin-bottom: 28px;
 }
 
 .title {
-  margin: 0 0 24px;
-  font-size: 22px;
-  color: #4a2a8a;
-  text-align: center;
+  margin: 0 0 8px;
+  font-size: 26px;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.subtitle {
+  margin: 0;
+  font-size: 14px;
+  color: var(--text-muted);
 }
 
 .form-item {
-  margin-bottom: 16px;
+  margin-bottom: 18px;
   text-align: left;
 }
 
 .form-item label {
   display: block;
-  font-size: 14px;
-  margin-bottom: 6px;
-  color: #555;
+  font-size: 13px;
+  font-weight: 500;
+  margin-bottom: 8px;
+  color: var(--text);
 }
 
-.form-item input {
+.input-wrap input {
   width: 100%;
-  height: 36px;
-  border-radius: 6px;
-  border: 1px solid #ddd;
-  padding: 0 10px;
-  box-sizing: border-box;
+  height: 44px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-strong);
+  padding: 0 14px;
+  font-size: 14px;
+  color: var(--text);
+  background: var(--surface);
   outline: none;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
 }
 
-.form-item input:focus {
-  border-color: #a66bff;
+.input-wrap input::placeholder {
+  color: var(--text-faint);
+}
+
+.input-wrap input:focus {
+  border-color: var(--brand);
+  box-shadow: var(--ring);
 }
 
 .error {
-  color: #ff4d4f;
+  color: var(--danger);
   font-size: 13px;
-  margin-bottom: 10px;
+  margin-bottom: 14px;
+  padding: 10px 12px;
+  background: var(--danger-soft);
+  border: 1px solid #fecaca;
+  border-radius: var(--radius-sm);
 }
 
 .login-button {
   width: 100%;
-  height: 38px;
+  height: 46px;
   border: none;
-  border-radius: 6px;
-  background-color: #7b5cff;
+  border-radius: var(--radius-sm);
+  background: var(--brand);
   color: #fff;
   font-size: 15px;
+  font-weight: 600;
+  letter-spacing: 2px;
   cursor: pointer;
+  margin-top: 6px;
+  transition: background 0.15s ease, transform 0.05s ease, box-shadow 0.15s ease;
+  box-shadow: 0 8px 20px rgba(47, 107, 255, 0.28);
+}
+
+.login-button:hover:not(:disabled) {
+  background: var(--brand-strong);
+}
+
+.login-button:active:not(:disabled) {
+  transform: translateY(1px);
 }
 
 .login-button:disabled {
   opacity: 0.7;
   cursor: default;
+  box-shadow: none;
+}
+
+.hint {
+  margin: 18px 0 0;
+  font-size: 12px;
+  color: var(--text-faint);
+  text-align: center;
+}
+
+@media (max-width: 860px) {
+  .brand-panel {
+    display: none;
+  }
 }
 </style>
-
