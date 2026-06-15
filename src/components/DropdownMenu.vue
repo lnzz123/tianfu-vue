@@ -80,7 +80,7 @@ export default {
 
 <style scoped>
 .dropdown-menu {
-  margin-bottom: 8px;
+  margin-bottom: 18px;
 }
 
 .dropdown-header {
@@ -91,53 +91,60 @@ export default {
   user-select: none;
 }
 
+/* 分组标题：作为弱化的“分类”标签，与下方菜单项明显区分 */
 .menu-section {
-  padding: 10px 16px;
-  margin: 0 10px;
-  font-size: 12px;
-  letter-spacing: 0.08em;
+  padding: 6px 18px;
+  margin: 0 8px 4px;
+  font-size: 11px;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
-  color: var(--sidebar-text);
-  border-radius: var(--radius-sm);
+  color: #6b7a90;
   transition: color 0.15s ease;
+}
+
+.dropdown-header:hover .group-title {
+  color: var(--sidebar-text);
 }
 
 .group-label {
   display: flex;
   align-items: center;
-  gap: 9px;
+  gap: 8px;
 }
 
 .group-icon {
-  opacity: 0.85;
+  opacity: 0.7;
 }
 
 .group-title {
   font-weight: 600;
+  transition: color 0.15s ease;
 }
 
 .menu-list {
   margin-top: 2px;
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 3px;
 }
 
 .item-icon {
-  opacity: 0.8;
+  opacity: 0.85;
 }
 
+/* 菜单项：作为主操作项，字号更大、对比更高 */
 .menu-item {
   position: relative;
   display: flex;
   align-items: center;
   gap: 11px;
-  padding: 10px 16px;
-  margin: 0 10px;
+  padding: 11px 16px;
+  margin: 0 8px;
   cursor: pointer;
   font-size: 14px;
+  font-weight: 500;
   color: var(--sidebar-text);
-  border-radius: var(--radius-sm);
+  border-radius: var(--radius);
   transition: background 0.15s ease, color 0.15s ease;
 }
 
@@ -158,16 +165,17 @@ export default {
   background: var(--sidebar-active-bg);
   color: var(--sidebar-text-strong);
   font-weight: 600;
+  box-shadow: inset 0 0 0 1px rgba(47, 107, 255, 0.3);
 }
 
 .menu-item.active::before {
   content: '';
   position: absolute;
-  left: 0;
+  left: -8px;
   top: 50%;
   transform: translateY(-50%);
   width: 3px;
-  height: 18px;
+  height: 22px;
   border-radius: 0 3px 3px 0;
   background: var(--brand);
 }

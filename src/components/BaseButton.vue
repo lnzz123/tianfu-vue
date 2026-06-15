@@ -23,7 +23,7 @@ export default {
     variant: {
       type: String,
       default: 'primary',
-      validator: (v) => ['primary', 'secondary', 'danger', 'link'].includes(v)
+      validator: (v) => ['primary', 'secondary', 'danger', 'link', 'ghost', 'ghost-danger'].includes(v)
     },
     icon: { type: String, default: '' },
     iconSize: { type: [Number, String], default: 16 },
@@ -49,6 +49,7 @@ export default {
   cursor: pointer;
   border: 1px solid transparent;
   transition: all 0.15s ease;
+  white-space: nowrap;
 }
 
 .ui-btn:disabled {
@@ -90,6 +91,38 @@ export default {
   border-color: #fecaca;
 }
 .ui-btn--danger:not(:disabled):hover {
+  background: var(--danger);
+  color: #fff;
+  border-color: var(--danger);
+}
+
+/* ghost —— 表格内中性操作（编辑等），与 ghost-danger 尺寸一致 */
+.ui-btn--ghost,
+.ui-btn--ghost-danger {
+  height: 32px;
+  padding: 0 12px;
+  font-size: 13px;
+  font-weight: 500;
+  gap: 5px;
+}
+.ui-btn--ghost {
+  background: var(--surface);
+  color: var(--text-muted);
+  border-color: var(--border-strong);
+}
+.ui-btn--ghost:not(:disabled):hover {
+  background: var(--brand-soft);
+  color: var(--brand-strong);
+  border-color: var(--brand);
+}
+
+/* ghost-danger —— 表格内删除操作，与 ghost 完全等高同形 */
+.ui-btn--ghost-danger {
+  background: var(--surface);
+  color: var(--danger);
+  border-color: #fecaca;
+}
+.ui-btn--ghost-danger:not(:disabled):hover {
   background: var(--danger);
   color: #fff;
   border-color: var(--danger);
