@@ -269,7 +269,7 @@ function cloneEmptyProperty () {
     id: null,
     ownerName: '',
     idNumber: '',
-    city: '成都市',
+    city: '',
     district: '',
     street: '',
     doorNo: '',
@@ -302,7 +302,7 @@ export default {
       filters: {
         ownerName: '',
         idNumber: '',
-        city: '成都市'
+        city: ''
       },
       properties: [],
       page: {
@@ -367,7 +367,7 @@ export default {
       this.filters = {
         ownerName: '',
         idNumber: '',
-        city: '成都市'
+        city: ''
       }
       this.selectedDetailIds = []
       this.showDialog = false
@@ -456,7 +456,7 @@ export default {
         params.append('pageNo', this.page.pageNo)
         params.append('pageSize', this.page.pageSize)
         const token = localStorage.getItem('adminToken') || ''
-        // 当前管理端入口在天府通办菜单下，对应 appId = 1
+        // 当前管理端入口在房产登记菜单下，对应 appId = 1
         const resp = await fetch(`/api/apps/${this.appId}/admin/properties?` + params.toString(), {
           headers: {
             'user-authentication': token
@@ -602,7 +602,7 @@ export default {
     async saveProperty () {
       const token = localStorage.getItem('adminToken') || ''
       const payload = Object.assign({}, this.editing)
-      // 当前管理端入口在天府通办菜单下，对应 appId = 1
+      // 当前管理端入口在房产登记菜单下，对应 appId = 1
       const url = this.editing.id ? `/api/apps/${this.appId}/admin/properties/` + this.editing.id : `/api/apps/${this.appId}/admin/properties`
       const method = this.editing.id ? 'PUT' : 'POST'
       this.error = ''
@@ -641,7 +641,7 @@ export default {
       const token = localStorage.getItem('adminToken') || ''
       this.error = ''
       try {
-        // 当前管理端入口在天府通办菜单下，对应 appId = 1
+        // 当前管理端入口在房产登记菜单下，对应 appId = 1
         const resp = await fetch(`/api/apps/${this.appId}/admin/properties/` + id, {
           method: 'DELETE',
           headers: {

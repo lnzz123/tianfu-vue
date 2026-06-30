@@ -6,7 +6,7 @@
           <app-icon name="layers" :size="22" :stroke-width="2.1" />
         </div>
         <div class="brand-text">
-          <span class="brand-name">天府通办</span>
+          <span class="brand-name">房产登记</span>
           <span class="brand-sub">后台管理系统</span>
         </div>
       </div>

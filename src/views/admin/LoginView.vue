@@ -6,7 +6,7 @@
         <div class="brand-mark">
           <app-icon name="layers" :size="24" :stroke-width="2.1" />
         </div>
-        <span class="brand-name">天府通办</span>
+        <span class="brand-name">房产登记</span>
       </div>
       <div class="brand-hero">
         <h2 class="brand-title">后台管理系统</h2>
@@ -17,7 +17,7 @@
           <li><span class="point-icon"><app-icon name="layers" :size="16" /></span>多应用可扩展架构</li>
         </ul>
       </div>
-      <div class="brand-foot">© {{ year }} 天府通办 · 政务服务平台</div>
+      <div class="brand-foot">© {{ year }} 房产登记 · 政务服务平台</div>
     </aside>
 
     <!-- 右侧登录表单 -->
@@ -86,7 +86,7 @@ export default {
         body.append('account', this.form.account)
         body.append('password', this.form.password)
 
-        // 当前管理端入口在天府通办菜单下，对应 appId = 1
+        // 当前管理端入口在房产登记菜单下，对应 appId = 1
         const resp = await fetch('/api/apps/1/admin/login', {
           method: 'POST',
           headers: {
