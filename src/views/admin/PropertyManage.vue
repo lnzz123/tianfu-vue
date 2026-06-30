@@ -144,11 +144,11 @@
         <div class="field-row field-row-2col">
           <div class="field-half">
             <label>栋号</label>
-            <input class="ui-input" v-model.number="editing.buildingNo" type="number" />
+            <input class="ui-input" v-model="editing.buildingNo" placeholder="例：1栋、A栋" />
           </div>
           <div class="field-half">
             <label>单元</label>
-            <input class="ui-input" v-model.number="editing.unitNo" type="number" />
+            <input class="ui-input" v-model="editing.unitNo" placeholder="例：1单元" />
           </div>
         </div>
         <div class="field-row field-row-2col">
@@ -158,18 +158,25 @@
           </div>
           <div class="field-half">
             <label>房号</label>
-            <input class="ui-input" v-model.number="editing.roomNo" type="number" />
+            <input class="ui-input" v-model="editing.roomNo" placeholder="例：101、1-3-19" />
           </div>
         </div>
         <div class="field-row field-row-2col">
           <div class="field-half">
+            <label>规划用途</label>
+            <input class="ui-input" v-model="editing.plannedUse" placeholder="例：住宅、商业" />
+          </div>
+          <div class="field-half">
             <label>套内面积 (㎡)</label>
             <input class="ui-input" v-model.number="editing.areaInCasing" type="number" step="0.01" />
           </div>
+        </div>
+        <div class="field-row field-row-2col">
           <div class="field-half">
             <label>公摊面积 (㎡)</label>
             <input class="ui-input" v-model.number="editing.sharedArea" type="number" step="0.01" />
           </div>
+          <div class="field-half"></div>
         </div>
       </div>
       <template #footer>
@@ -206,6 +213,7 @@
                 <th>单元</th>
                 <th>楼层</th>
                 <th>房号</th>
+                <th>规划用途</th>
                 <th>套内面积 (㎡)</th>
                 <th>公摊面积 (㎡)</th>
                 <th class="col-action">操作</th>
@@ -225,6 +233,7 @@
                 <td>{{ item.unitNo }}</td>
                 <td>{{ item.floor }}</td>
                 <td>{{ item.roomNo }}</td>
+                <td>{{ item.plannedUse }}</td>
                 <td>{{ item.areaInCasing }}</td>
                 <td>{{ item.sharedArea }}</td>
                 <td class="col-action detail-actions">
@@ -264,10 +273,11 @@ function cloneEmptyProperty () {
     district: '',
     street: '',
     doorNo: '',
-    buildingNo: null,
-    unitNo: null,
+    buildingNo: '',
+    unitNo: '',
     floor: '',
-    roomNo: null,
+    roomNo: '',
+    plannedUse: '',
     areaInCasing: null,
     sharedArea: null
   }
